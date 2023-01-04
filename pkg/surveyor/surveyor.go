@@ -1,27 +1,31 @@
-package chainsaw
+package surveyor
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	cnitypes "github.com/containernetworking/cni/pkg/types"
 	"net"
 	"os"
 	"os/exec"
 	"regexp"
 	"strings"
+
+	cnitypes "github.com/containernetworking/cni/pkg/types"
+
 	// current "github.com/containernetworking/cni/pkg/types/040"
 	// cniVersion "github.com/containernetworking/cni/pkg/version"
-	"chainsaw-cni/pkg/types"
+	"surveyor-cni/pkg/types"
+	"time"
+
 	"github.com/containernetworking/cni/pkg/skel"
 	"github.com/containernetworking/plugins/pkg/ns"
-	"time"
 
 	"k8s.io/client-go/kubernetes"
 	// "k8s.io/client-go/kubernetes/scheme"
 	// v1core "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
 	// "k8s.io/client-go/tools/record"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -253,6 +257,71 @@ func GetK8sClient(kubeconfig string, kubeClient *ClientInfo) (*ClientInfo, error
 		Client: client,
 	}, nil
 }
+
+/*
+
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+)
+
+func main() {
+	// Create the client config. Use kubeconfig if specified, otherwise assume in-cluster.
+	config, err := buildConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create the client.
+	client, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Define the custom resource.
+	customResource := &CustomResource{}
+
+	// Set the custom resource namespace and name.
+	namespace := "default"
+	name := "example"
+
+	// Get the custom resource.
+	err = client.RESTClient().Get().
+		Namespace(namespace).
+		Resource("customresources").
+		Name(name).
+		Do(context.TODO()).
+		Into(customResource)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Print the custom resource.
+	fmt.Printf("Custom Resource: %+v\n", customResource)
+}
+
+// buildConfig creates a Kubernetes client config.
+func buildConfig() (*rest.Config, error) {
+	kubeconfigPath := "" // Set this to the path to your kubeconfig file if using out-of-cluster config.
+	if kubeconfigPath == "" {
+		return rest.InClusterConfig()
+	}
+	return clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+}
+
+// CustomResource is a sample custom resource.
+type CustomResource struct {
+	// INSERT ADDITIONAL FIELDS HERE
+}
+
+*/
 
 // // LoadNetConf parses our cni configuration
 // func LoadNetConf(bytes []byte) (*NetConf, error) {

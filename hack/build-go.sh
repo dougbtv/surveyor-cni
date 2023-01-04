@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -eu
-cmd=chainsaw
+cmd=surveyor
 eval $(go env | grep -e "GOHOSTOS" -e "GOHOSTARCH")
 GO=${GO:-go}
 GOOS=${GOOS:-${GOHOSTOS}}

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"chainsaw-cni/pkg/chainsaw"
-	"chainsaw-cni/pkg/types"
-	"chainsaw-cni/pkg/version"
 	"fmt"
 	"os"
+	"surveyor-cni/pkg/surveyor"
+	"surveyor-cni/pkg/types"
+	"surveyor-cni/pkg/version"
 
 	"github.com/containernetworking/cni/pkg/skel"
 	cniTypes "github.com/containernetworking/cni/pkg/types"
@@ -33,7 +33,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 
 	cniresult, err := current.NewResultFromResult(conf.PrevResult)
 
-	anno, err := chainsaw.GetAnnotation(args, conf)
+	anno, err := surveyor.GetAnnotation(args, conf)
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 
 		// Figure out the current interface name.
 		// We get the last one in the list that has a sandbox
-		// chainsaw.WriteToSocket(fmt.Sprintf("!bang cniresult: %+v", cniresult.Interfaces), conf)
+		// surveyor.WriteToSocket(fmt.Sprintf("!bang cniresult: %+v", cniresult.Interfaces), conf)
 		currentInterface := ""
 		for _, v := range cniresult.Interfaces {
 			if v.Sandbox != "" {
@@ -51,15 +51,15 @@ func cmdAdd(args *skel.CmdArgs) error {
 			}
 		}
 
-		chainsaw.WriteToSocket(fmt.Sprintf("!bang =========== ifname: %s / netns: %s", currentInterface, args.Netns), conf)
-		// chainsaw.WriteToSocket(fmt.Sprintf("!bang anno: %+v", anno), conf)
-		commands, err := chainsaw.ParseAnnotation(anno)
+		surveyor.WriteToSocket(fmt.Sprintf("!bang =========== ifname: %s / netns: %s", currentInterface, args.Netns), conf)
+		// surveyor.WriteToSocket(fmt.Sprintf("!bang anno: %+v", anno), conf)
+		commands, err := surveyor.ParseAnnotation(anno)
 		if err != nil {
-			chainsaw.WriteToSocket(fmt.Sprintf("Error parsing command: %v", err), conf)
+			surveyor.WriteToSocket(fmt.Sprintf("Error parsing command: %v", err), conf)
 			return err
 		}
-		chainsaw.WriteToSocket(fmt.Sprintf("Detected commands: %v", commands), conf)
-		err = chainsaw.ProcessCommands(args.Netns, commands, currentInterface, conf)
+		surveyor.WriteToSocket(fmt.Sprintf("Detected commands: %v", commands), conf)
+		err = surveyor.ProcessCommands(args.Netns, commands, currentInterface, conf)
 		if err != nil {
 			return err
 		}
