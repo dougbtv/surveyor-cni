@@ -33,37 +33,41 @@ func cmdAdd(args *skel.CmdArgs) error {
 
 	cniresult, err := current.NewResultFromResult(conf.PrevResult)
 
-	anno, err := surveyor.GetAnnotation(args, conf)
-	if err != nil {
-		return err
-	}
+	surveyor.HelloWorld(args, conf)
 
-	// We only do the rest if we have an annotation...
-	if anno != "" {
+	/*
+		anno, err := surveyor.GetAnnotation(args, conf)
+		if err != nil {
+			return err
+		}
 
-		// Figure out the current interface name.
-		// We get the last one in the list that has a sandbox
-		// surveyor.WriteToSocket(fmt.Sprintf("!bang cniresult: %+v", cniresult.Interfaces), conf)
-		currentInterface := ""
-		for _, v := range cniresult.Interfaces {
-			if v.Sandbox != "" {
-				currentInterface = v.Name
+		// We only do the rest if we have an annotation...
+		if anno != "" {
+
+			// Figure out the current interface name.
+			// We get the last one in the list that has a sandbox
+			// surveyor.WriteToSocket(fmt.Sprintf("!bang cniresult: %+v", cniresult.Interfaces), conf)
+			currentInterface := ""
+			for _, v := range cniresult.Interfaces {
+				if v.Sandbox != "" {
+					currentInterface = v.Name
+				}
+			}
+
+			surveyor.WriteToSocket(fmt.Sprintf("!bang =========== ifname: %s / netns: %s", currentInterface, args.Netns), conf)
+			// surveyor.WriteToSocket(fmt.Sprintf("!bang anno: %+v", anno), conf)
+			commands, err := surveyor.ParseAnnotation(anno)
+			if err != nil {
+				surveyor.WriteToSocket(fmt.Sprintf("Error parsing command: %v", err), conf)
+				return err
+			}
+			surveyor.WriteToSocket(fmt.Sprintf("Detected commands: %v", commands), conf)
+			err = surveyor.ProcessCommands(args.Netns, commands, currentInterface, conf)
+			if err != nil {
+				return err
 			}
 		}
-
-		surveyor.WriteToSocket(fmt.Sprintf("!bang =========== ifname: %s / netns: %s", currentInterface, args.Netns), conf)
-		// surveyor.WriteToSocket(fmt.Sprintf("!bang anno: %+v", anno), conf)
-		commands, err := surveyor.ParseAnnotation(anno)
-		if err != nil {
-			surveyor.WriteToSocket(fmt.Sprintf("Error parsing command: %v", err), conf)
-			return err
-		}
-		surveyor.WriteToSocket(fmt.Sprintf("Detected commands: %v", commands), conf)
-		err = surveyor.ProcessCommands(args.Netns, commands, currentInterface, conf)
-		if err != nil {
-			return err
-		}
-	}
+	*/
 
 	return cniTypes.PrintResult(cniresult, conf.CNIVersion)
 }

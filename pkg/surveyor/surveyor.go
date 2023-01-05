@@ -142,6 +142,12 @@ func ParseAnnotation(rawannotation string) ([]string, error) {
 
 }
 
+func HelloWorld(args *skel.CmdArgs, conf *types.NetConf) (string, error) {
+	// HelloWorld
+	WriteToSocket("Hello world, Doug.\n", conf)
+	return "hello", nil
+}
+
 // GetAnnotation gets a pod annotation
 func GetAnnotation(args *skel.CmdArgs, conf *types.NetConf) (string, error) {
 	kubeClient, err := GetK8sClient(conf.Kubeconfig, nil)
