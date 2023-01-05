@@ -42,9 +42,9 @@ func cmdAdd(args *skel.CmdArgs) error {
 
 	result := &current.Result{}
 
-	// fmt.Printf("foo! !bang")
+	// fmt.Printf("foo! !bang config: %+v", conf)
 
-	// surveyor.WriteToSocket("Check 1212", conf)
+	surveyor.WriteToSocket(fmt.Sprintf("Config loaded: %+v", conf), conf)
 	surveyor.GetInterfaceMaps(args, conf)
 
 	/*

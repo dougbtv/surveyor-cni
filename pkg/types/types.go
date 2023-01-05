@@ -45,6 +45,7 @@ func LoadNetConf(bytes []byte) (*NetConf, error) {
 	conf := NetConf{
 		SocketEnabled: true,
 		SocketPath:    "/var/run/surveyor-cni/surveyor.sock",
+		Kubeconfig:    use_kubeconfig_path,
 	}
 	if err := json.Unmarshal(bytes, &conf); err != nil {
 		return nil, fmt.Errorf("failed to load netconf: %s", err)

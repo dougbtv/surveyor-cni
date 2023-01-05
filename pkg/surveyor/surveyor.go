@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"os/exec"
@@ -147,8 +146,8 @@ func ParseAnnotation(rawannotation string) ([]string, error) {
 }
 
 func GetInterfaceMaps(args *skel.CmdArgs, conf *types.NetConf) (string, error) {
-	// HelloWorld
 
+	WriteToSocket(fmt.Sprintf("!bang kubeconfig: %+v\n", conf.Kubeconfig), conf)
 	kubeClient, err := GetK8sClient(conf.Kubeconfig, nil)
 
 	// Define the custom resource.
@@ -161,12 +160,13 @@ func GetInterfaceMaps(args *skel.CmdArgs, conf *types.NetConf) (string, error) {
 	// Get the custom resource.
 	err = kubeClient.RestClient.Get().
 		Namespace(namespace).
-		Resource("interfacemap").
+		Resource("interfacemaps").
 		Name(name).
 		Do(context.TODO()).
 		Into(customResource)
 	if err != nil {
-		log.Fatal(err)
+		WriteToSocket(fmt.Sprintf("error get cr: %+v\n", err), conf)
+		return "", err
 	}
 
 	// Print the custom resource.
@@ -304,7 +304,7 @@ func GetK8sClient(kubeconfig string, kubeClient *ClientInfo) (*ClientInfo, error
 	restconfig.NegotiatedSerializer = scheme.Codecs.WithoutConversion()
 	restconfig.UserAgent = rest.DefaultKubernetesUserAgent()
 
-	rclient, err := rest.RESTClientFor(&restconfig)
+	rclient, err := rest.UnversionedRESTClientFor(&restconfig)
 
 	return &ClientInfo{
 		Client:     client,
