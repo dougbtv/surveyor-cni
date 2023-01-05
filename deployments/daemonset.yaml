@@ -117,7 +117,7 @@ spec:
       serviceAccountName: surveyor-cni
       containers:
       - name: kube-surveyor-cni
-        image: docker.io/dougbtv/surveyor-cni:gen1
+        image: docker.io/dougbtv/surveyor-cni:gen2
         imagePullPolicy: Always
         command: ["/entrypoint.sh"]
         resources:
@@ -138,11 +138,11 @@ spec:
           mountPath: /host/var/run/surveyor-cni
       initContainers:
         - name: install-surveyor-cni-binary
-          image: docker.io/dougbtv/surveyor-cni:latest
+          image: docker.io/dougbtv/surveyor-cni:gen2
           command:
             - "cp"
-            - "/usr/src/surveyor-cni/bin/chainsaw"
-            - "/host/opt/cni/bin/chainsaw"
+            - "/usr/src/surveyor-cni/bin/surveyor"
+            - "/host/opt/cni/bin/surveyor"
           resources:
             requests:
               cpu: "10m"
