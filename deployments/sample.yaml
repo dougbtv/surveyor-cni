@@ -2,21 +2,13 @@
 apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
 metadata:
-  name: test-chainsaw
+  name: test-surveyor
 spec:
   config: '{
     "cniVersion": "0.4.0",
-    "name": "test-chainsaw-chain",
+    "name": "test-surveyor-chain",
     "plugins": [{
-      "type": "bridge",
-      "name": "mybridge",
-      "bridge": "chainsawbr0",
-      "ipam": {
-        "type": "host-local",
-        "subnet": "192.0.2.0/24"
-      }
-    }, {
-      "type": "chainsaw",
+      "type": "surveyor",
       "foo": "bar"
     }]
   }'
@@ -24,13 +16,13 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: chainsawtestpod
+  name: surveyortestpod
   annotations:
-    k8s.v1.cni.cncf.io/networks: test-chainsaw
-    k8s.v1.cni.cncf.io/chainsaw: >
+    k8s.v1.cni.cncf.io/networks: test-surveyor
+    k8s.v1.cni.cncf.io/surveyor: >
       ["ip route","  ip addr"]
 spec:
   containers:
-  - name: chainsawtestpod
+  - name: surveyortestpod
     command: ["/bin/ash", "-c", "trap : TERM INT; sleep infinity & wait"]
     image: alpine

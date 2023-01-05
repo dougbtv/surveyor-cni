@@ -1,22 +1,14 @@
 #!/bin/bash
-export CNI_PATH=/opt/cni/bin/
+export CNI_PATH=/home/doug/codebase/src/github.com/dougbtv/surveyor-cni/bin
 export NETCONFPATH=/tmp/cniconfig/
 mkdir -p /tmp/cniconfig
 
-cat << EOF > /tmp/cniconfig/99-test-chainsaw.conflist
+cat << EOF > /tmp/cniconfig/99-test-surveyor.conflist
 {
   "cniVersion": "0.4.0",
-  "name": "test-chainsaw-chain",
+  "name": "test-surveyor-chain",
   "plugins": [{
-    "type": "bridge",
-    "name": "mybridge",
-    "bridge": "chainsawbr0",
-    "ipam": {
-      "type": "host-local",
-      "subnet": "192.0.2.0/24"
-    }
-  }, {
-    "type": "chainsaw",
+    "type": "surveyor",
     "foo": "bar"
   }]
 }
@@ -25,22 +17,22 @@ EOF
 sudo ip netns add myplayground
 sudo ip netns list | grep myplayground
 echo "------------------ CNI ADD"
-sudo NETCONFPATH=$(echo $NETCONFPATH) CNI_PATH=$(echo $CNI_PATH) $(which cnitool) add test-chainsaw-chain /var/run/netns/myplayground
+sudo NETCONFPATH=$(echo $NETCONFPATH) CNI_PATH=$(echo $CNI_PATH) $(which cnitool) add test-surveyor-chain /var/run/netns/myplayground
 echo "------------------ CNI DEL"
-sudo NETCONFPATH=$(echo $NETCONFPATH) CNI_PATH=$(echo $CNI_PATH) $(which cnitool) del test-chainsaw-chain /var/run/netns/myplayground
+sudo NETCONFPATH=$(echo $NETCONFPATH) CNI_PATH=$(echo $CNI_PATH) $(which cnitool) del test-surveyor-chain /var/run/netns/myplayground
 
 
 sudo ip netns del myplayground
 
 
-# cat << EOF > /tmp/cniconfig/99-test-chainsaw.conflist
+# cat << EOF > /tmp/cniconfig/99-test-surveyor.conflist
 # {
 #   "cniVersion": "0.4.0",
-#   "name": "test-chainsaw-chain",
+#   "name": "test-surveyor-chain",
 #   "plugins": [{
 #     "type": "bridge",
 #     "name": "mybridge",
-#     "bridge": "chainsawbr0",
+#     "bridge": "surveyorbr0",
 #     "ipam": {
 #       "type": "host-local",
 #       "subnet": "192.0.2.0/24"

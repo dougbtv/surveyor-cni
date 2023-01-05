@@ -24,6 +24,7 @@ func main() {
 }
 
 func cmdAdd(args *skel.CmdArgs) error {
+
 	// We try to do as little as possible to get the annotation, and only do more if it has it.
 	conf, err := types.LoadNetConf(args.StdinData)
 	if err != nil {
@@ -31,9 +32,20 @@ func cmdAdd(args *skel.CmdArgs) error {
 		return err
 	}
 
-	cniresult, err := current.NewResultFromResult(conf.PrevResult)
+	//
 
-	surveyor.HelloWorld(args, conf)
+	// var result cniTypes.Result
+	// cniresult, err := current.NewResultFromResult(result)
+	// if err != nil {
+	// 	return err
+	// }
+
+	result := &current.Result{}
+
+	// fmt.Printf("foo! !bang")
+
+	// surveyor.WriteToSocket("Check 1212", conf)
+	surveyor.GetInterfaceMaps(args, conf)
 
 	/*
 		anno, err := surveyor.GetAnnotation(args, conf)
@@ -69,7 +81,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 		}
 	*/
 
-	return cniTypes.PrintResult(cniresult, conf.CNIVersion)
+	return cniTypes.PrintResult(result, conf.CNIVersion)
 }
 
 func cmdDel(args *skel.CmdArgs) (err error) {

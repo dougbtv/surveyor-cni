@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"os/exec"
@@ -14,6 +15,7 @@ import (
 
 	// current "github.com/containernetworking/cni/pkg/types/040"
 	// cniVersion "github.com/containernetworking/cni/pkg/version"
+	crdtypes "surveyor-cni/pkg/apis/k8s.cni.cncf.io/v1"
 	"surveyor-cni/pkg/types"
 	"time"
 
@@ -21,7 +23,8 @@ import (
 	"github.com/containernetworking/plugins/pkg/ns"
 
 	"k8s.io/client-go/kubernetes"
-	// "k8s.io/client-go/kubernetes/scheme"
+
+	"k8s.io/client-go/kubernetes/scheme"
 	// v1core "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -29,6 +32,7 @@ import (
 	// "k8s.io/client-go/tools/record"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 const (
@@ -142,9 +146,43 @@ func ParseAnnotation(rawannotation string) ([]string, error) {
 
 }
 
+func GetInterfaceMaps(args *skel.CmdArgs, conf *types.NetConf) (string, error) {
+	// HelloWorld
+
+	kubeClient, err := GetK8sClient(conf.Kubeconfig, nil)
+
+	// Define the custom resource.
+	customResource := &crdtypes.InterfaceMap{}
+
+	// Set the custom resource namespace and name.
+	namespace := "default"
+	name := "hostfoo"
+
+	// Get the custom resource.
+	err = kubeClient.RestClient.Get().
+		Namespace(namespace).
+		Resource("interfacemap").
+		Name(name).
+		Do(context.TODO()).
+		Into(customResource)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Print the custom resource.
+
+	WriteToSocket(fmt.Sprintf("!bang Custom Resource: %+v\n", customResource), conf)
+	return "hello", nil
+}
+
+// type InterfaceMap struct {
+// 	// INSERT ADDITIONAL FIELDS HERE
+// 	Objects
+// }
+
 func HelloWorld(args *skel.CmdArgs, conf *types.NetConf) (string, error) {
 	// HelloWorld
-	WriteToSocket("Hello world, Doug.\n", conf)
+	WriteToSocket("Hello world, !bang.\n", conf)
 	return "hello", nil
 }
 
@@ -206,7 +244,8 @@ func GetK8sArgs(args *skel.CmdArgs) (*types.K8sArgs, error) {
 
 // ClientInfo contains information given from k8s client
 type ClientInfo struct {
-	Client kubernetes.Interface
+	Client     kubernetes.Interface
+	RestClient rest.Interface
 	// NetClient        netclient.K8sCniCncfIoV1Interface
 	// EventBroadcaster record.EventBroadcaster
 	// EventRecorder    record.EventRecorder
@@ -259,8 +298,17 @@ func GetK8sClient(kubeconfig string, kubeClient *ClientInfo) (*ClientInfo, error
 		return nil, err
 	}
 
+	restconfig := *config
+	restconfig.ContentConfig.GroupVersion = &schema.GroupVersion{Group: crdtypes.GroupName, Version: crdtypes.GroupVersion}
+	restconfig.APIPath = "/apis"
+	restconfig.NegotiatedSerializer = scheme.Codecs.WithoutConversion()
+	restconfig.UserAgent = rest.DefaultKubernetesUserAgent()
+
+	rclient, err := rest.RESTClientFor(&restconfig)
+
 	return &ClientInfo{
-		Client: client,
+		Client:     client,
+		RestClient: rclient,
 	}, nil
 }
 
