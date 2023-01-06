@@ -25,61 +25,17 @@ func main() {
 
 func cmdAdd(args *skel.CmdArgs) error {
 
-	// We try to do as little as possible to get the annotation, and only do more if it has it.
 	conf, err := types.LoadNetConf(args.StdinData)
 	if err != nil {
 		err = fmt.Errorf("Error parsing CNI configuration \"%s\": %s", args.StdinData, err)
 		return err
 	}
 
-	//
-
-	// var result cniTypes.Result
-	// cniresult, err := current.NewResultFromResult(result)
-	// if err != nil {
-	// 	return err
-	// }
-
+	// Create a CNI result to use.
 	result := &current.Result{}
 
-	// fmt.Printf("foo! !bang config: %+v", conf)
-
-	surveyor.WriteToSocket(fmt.Sprintf("Config loaded: %+v", conf), conf)
+	// surveyor.WriteToSocket(fmt.Sprintf("Config loaded: %+v", conf), conf)
 	surveyor.GetInterfaceMaps(args, conf)
-
-	/*
-		anno, err := surveyor.GetAnnotation(args, conf)
-		if err != nil {
-			return err
-		}
-
-		// We only do the rest if we have an annotation...
-		if anno != "" {
-
-			// Figure out the current interface name.
-			// We get the last one in the list that has a sandbox
-			// surveyor.WriteToSocket(fmt.Sprintf("!bang cniresult: %+v", cniresult.Interfaces), conf)
-			currentInterface := ""
-			for _, v := range cniresult.Interfaces {
-				if v.Sandbox != "" {
-					currentInterface = v.Name
-				}
-			}
-
-			surveyor.WriteToSocket(fmt.Sprintf("!bang =========== ifname: %s / netns: %s", currentInterface, args.Netns), conf)
-			// surveyor.WriteToSocket(fmt.Sprintf("!bang anno: %+v", anno), conf)
-			commands, err := surveyor.ParseAnnotation(anno)
-			if err != nil {
-				surveyor.WriteToSocket(fmt.Sprintf("Error parsing command: %v", err), conf)
-				return err
-			}
-			surveyor.WriteToSocket(fmt.Sprintf("Detected commands: %v", commands), conf)
-			err = surveyor.ProcessCommands(args.Netns, commands, currentInterface, conf)
-			if err != nil {
-				return err
-			}
-		}
-	*/
 
 	return cniTypes.PrintResult(result, conf.CNIVersion)
 }

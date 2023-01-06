@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"os/exec"
 	"regexp"
 	"strings"
 
@@ -19,7 +18,6 @@ import (
 	"time"
 
 	"github.com/containernetworking/cni/pkg/skel"
-	"github.com/containernetworking/plugins/pkg/ns"
 
 	"k8s.io/client-go/kubernetes"
 
@@ -29,55 +27,13 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	// "k8s.io/client-go/tools/record"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 const (
 	chainsawAnnotation = "k8s.v1.cni.cncf.io/chainsaw"
-	currentDeviceToken = "CURRENT_INTERFACE"
 )
-
-func runCommand(command string, argsstring string) (string, error) {
-	args := strings.Fields(argsstring)
-	cmd := exec.Command(command, args...)
-	// cmd.Stdin = strings.NewReader("some input")
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return string(out), err
-	}
-	return string(out), nil
-}
-
-// ProcessCommands runs all of the intended commands from the pod annotation
-func ProcessCommands(netnsName string, commands []string, currentInterface string, conf *types.NetConf) error {
-	netns, err := ns.GetNS(netnsName)
-	if err != nil {
-		return err
-	}
-	defer netns.Close()
-
-	err = netns.Do(func(_ ns.NetNS) error {
-		for _, v := range commands {
-			// We change out the current interface token with the actual current interface.
-			v = strings.Replace(v, currentDeviceToken, currentInterface, -1)
-
-			cmd := "ip"
-			cmdArgs := strings.TrimSpace(v)
-
-			output, err := runCommand(cmd, cmdArgs)
-			WriteToSocket(fmt.Sprintf("Running %s ===============\n%s\n", v, output), conf)
-			if err != nil {
-				WriteToSocket(fmt.Sprintf("Command '%s' failed with: %s", v, err), conf)
-				return fmt.Errorf("Command '%s' failed with: %s", v, err)
-			}
-		}
-		return nil
-	})
-
-	return err
-}
 
 // WriteToSocket writes to our socketfile, for logging.
 func WriteToSocket(output string, conf *types.NetConf) error {
@@ -175,61 +131,6 @@ func GetInterfaceMaps(args *skel.CmdArgs, conf *types.NetConf) (string, error) {
 	return "hello", nil
 }
 
-// type InterfaceMap struct {
-// 	// INSERT ADDITIONAL FIELDS HERE
-// 	Objects
-// }
-
-func HelloWorld(args *skel.CmdArgs, conf *types.NetConf) (string, error) {
-	// HelloWorld
-	WriteToSocket("Hello world, !bang.\n", conf)
-	return "hello", nil
-}
-
-// GetAnnotation gets a pod annotation
-func GetAnnotation(args *skel.CmdArgs, conf *types.NetConf) (string, error) {
-	kubeClient, err := GetK8sClient(conf.Kubeconfig, nil)
-	if err != nil {
-		return "", fmt.Errorf("error getting k8s client: %v", err)
-	}
-
-	k8sArgs, err := GetK8sArgs(args)
-	if err != nil {
-		return "", fmt.Errorf("error getting k8s args: %v", err)
-	}
-
-	err = WriteToSocket(fmt.Sprintf("!bang k8sArgs: %+v", k8sArgs), conf)
-	if err != nil {
-		return "", err
-	}
-
-	pod, err := getPod(kubeClient, k8sArgs)
-	if err != nil {
-		return "", err
-	}
-
-	chainsawannovalue := pod.Annotations[chainsawAnnotation]
-	return chainsawannovalue, nil
-
-}
-
-func getPod(kubeClient *ClientInfo, k8sArgs *types.K8sArgs) (*v1.Pod, error) {
-	if kubeClient == nil {
-		return nil, nil
-	}
-
-	podNamespace := string(k8sArgs.K8S_POD_NAMESPACE)
-	podName := string(k8sArgs.K8S_POD_NAME)
-	// podUID := string(k8sArgs.K8S_POD_UID)
-
-	pod, err := kubeClient.GetPod(podNamespace, podName)
-	if err != nil {
-		return nil, fmt.Errorf("error getting pod: %v", err)
-	}
-
-	return pod, nil
-}
-
 // GetK8sArgs gets k8s related args from CNI args
 func GetK8sArgs(args *skel.CmdArgs) (*types.K8sArgs, error) {
 	k8sArgs := &types.K8sArgs{}
@@ -249,11 +150,6 @@ type ClientInfo struct {
 	// NetClient        netclient.K8sCniCncfIoV1Interface
 	// EventBroadcaster record.EventBroadcaster
 	// EventRecorder    record.EventRecorder
-}
-
-// GetPod gets pod from kubernetes
-func (c *ClientInfo) GetPod(namespace, name string) (*v1.Pod, error) {
-	return c.Client.CoreV1().Pods(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 }
 
 // GetK8sClient gets client info from kubeconfig
@@ -311,98 +207,3 @@ func GetK8sClient(kubeconfig string, kubeClient *ClientInfo) (*ClientInfo, error
 		RestClient: rclient,
 	}, nil
 }
-
-/*
-
-package main
-
-import (
-	"context"
-	"fmt"
-	"log"
-
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-)
-
-func main() {
-	// Create the client config. Use kubeconfig if specified, otherwise assume in-cluster.
-	config, err := buildConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Create the client.
-	client, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Define the custom resource.
-	customResource := &CustomResource{}
-
-	// Set the custom resource namespace and name.
-	namespace := "default"
-	name := "example"
-
-	// Get the custom resource.
-	err = client.RESTClient().Get().
-		Namespace(namespace).
-		Resource("customresources").
-		Name(name).
-		Do(context.TODO()).
-		Into(customResource)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Print the custom resource.
-	fmt.Printf("Custom Resource: %+v\n", customResource)
-}
-
-// buildConfig creates a Kubernetes client config.
-func buildConfig() (*rest.Config, error) {
-	kubeconfigPath := "" // Set this to the path to your kubeconfig file if using out-of-cluster config.
-	if kubeconfigPath == "" {
-		return rest.InClusterConfig()
-	}
-	return clientcmd.BuildConfigFromFlags("", kubeconfigPath)
-}
-
-// CustomResource is a sample custom resource.
-type CustomResource struct {
-	// INSERT ADDITIONAL FIELDS HERE
-}
-
-*/
-
-// // LoadNetConf parses our cni configuration
-// func LoadNetConf(bytes []byte) (*NetConf, error) {
-//   conf := NetConf{}
-//   if err := json.Unmarshal(bytes, &conf); err != nil {
-//     return nil, fmt.Errorf("failed to load netconf: %s", err)
-//   }
-
-//   // Parse previous result
-//   if conf.RawPrevResult != nil {
-//     resultBytes, err := json.Marshal(conf.RawPrevResult)
-//     if err != nil {
-//       return nil, fmt.Errorf("could not serialize prevResult: %v", err)
-//     }
-
-//     res, err := cniVersion.NewResult(conf.CNIVersion, resultBytes)
-
-//     if err != nil {
-//       return nil, fmt.Errorf("could not parse prevResult: %v", err)
-//     }
-
-//     conf.RawPrevResult = nil
-//     conf.PrevResult, err = current.NewResultFromResult(res)
-//     if err != nil {
-//       return nil, fmt.Errorf("could not convert result to current version: %v", err)
-//     }
-//   }
-
-//   return &conf, nil
-// }
