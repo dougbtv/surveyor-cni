@@ -119,9 +119,8 @@ spec:
       - name: kube-surveyor-cni
         image: docker.io/dougbtv/surveyor-cni:gen2
         imagePullPolicy: Always
-        command: ["/bin/sh","-c"]
+        command: ["/bin/bash","-c"]
         args: ["/usr/src/surveyor-cni/bin/surveyor introspect && /entrypoint.sh"]
-        command: [""]
         resources:
           requests:
             cpu: "100m"
