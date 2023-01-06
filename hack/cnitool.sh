@@ -10,7 +10,7 @@ cat << EOF > /tmp/cniconfig/99-test-surveyor.conflist
 	"plugins": [{
 		"type": "surveyor",
 		"foo": "bar",
-		"master": "eth0",
+		"master": "enp2s0",
 		"mode": "bridge",
 		"ipam": {
 			"type": "static",
@@ -28,10 +28,11 @@ echo "------------------ CNI ADD"
 sudo NETCONFPATH=$(echo $NETCONFPATH) CNI_PATH=$(echo $CNI_PATH) $(which cnitool) add test-surveyor-chain /var/run/netns/myplayground
 echo "------------------ CNI DEL"
 sudo NETCONFPATH=$(echo $NETCONFPATH) CNI_PATH=$(echo $CNI_PATH) $(which cnitool) del test-surveyor-chain /var/run/netns/myplayground
-
+echo "------------------ Inspection "
+sudo ip netns exec myplayground ip a
 
 sudo ip netns del myplayground
-
+echo "----------------------"
 
 # cat << EOF > /tmp/cniconfig/99-test-surveyor.conflist
 # {

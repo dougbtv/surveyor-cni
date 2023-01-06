@@ -148,9 +148,12 @@ func validateConf(n *surveyortypes.NetConf) (*surveyortypes.NetConf, error) {
 		n.Master = defaultRouteInterface
 	}
 
+	debugLogger("!trace valid a")
+
 	// check existing and MTU of master interface
 	masterMTU, err := getMTUByName(n.Master)
 	if err != nil {
+		debugLogger(fmt.Sprintf("!trace valid b: %s", n.Master))
 		return n, err
 	}
 	if n.MTU < 0 || n.MTU > masterMTU {
