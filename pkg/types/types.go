@@ -15,12 +15,21 @@ import (
 // NetConf is our definition for the CNI configuration
 type NetConf struct {
 	cnitypes.NetConf
-	PrevResult       *current.Result `json:"-"`
-	Foo              string          `json:"foo"`
-	FilterExpression string          `json:"filter_expression"`
-	SocketEnabled    bool            `json:"socket_enabled"`
-	SocketPath       string          `json:"socket_path"`
-	Kubeconfig       string          `json:"kubeconfig"`
+
+	// Surveyor params
+	Network       string `json:"network"`
+	SocketEnabled bool   `json:"socket_enabled"`
+	SocketPath    string `json:"socket_path"`
+	Kubeconfig    string `json:"kubeconfig"`
+
+	// Macvlan params
+	Master        string `json:"master"`
+	Mode          string `json:"mode"`
+	MTU           int    `json:"mtu"`
+	Mac           string `json:"mac,omitempty"`
+	RuntimeConfig struct {
+		Mac string `json:"mac,omitempty"`
+	} `json:"runtimeConfig,omitempty"`
 }
 
 type K8sArgs struct {

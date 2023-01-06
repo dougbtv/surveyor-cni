@@ -2,12 +2,9 @@ package surveyor
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net"
 	"os"
-	"regexp"
-	"strings"
 
 	cnitypes "github.com/containernetworking/cni/pkg/types"
 
@@ -29,10 +26,6 @@ import (
 	// "k8s.io/client-go/tools/record"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
-)
-
-const (
-	chainsawAnnotation = "k8s.v1.cni.cncf.io/chainsaw"
 )
 
 // WriteToSocket writes to our socketfile, for logging.
@@ -64,41 +57,6 @@ func WriteToSocket(output string, conf *types.NetConf) error {
 		}
 	}
 	return nil
-}
-
-// ParseAnnotation parses JSON out of the annotation
-func ParseAnnotation(rawannotation string) ([]string, error) {
-
-	var commands []string
-
-	// Parse it if we have JSON.
-	if strings.Contains(rawannotation, "[") {
-		if err := json.Unmarshal([]byte(rawannotation), &commands); err != nil {
-			return nil, fmt.Errorf("failed to parse JSON annotation: %s", err)
-		}
-	} else {
-		// Just parse it as a command.
-		commands = append(commands, rawannotation)
-	}
-
-	// Cycle through each command and make sure it's legit.
-	//
-	validationrx, _ := regexp.Compile("^[^\\.\\/][\\w\\s\\.\\:_\\-\\d\\/]+$")
-	replaceiprx, _ := regexp.Compile("^\\s*?ip\\s+")
-	// r.MatchString("peach")
-	for idx, v := range commands {
-		if !validationrx.MatchString(v) {
-			return nil, fmt.Errorf("We cannot validate the value: '%s' (it's validated like this: https://regex101.com/r/vPKuZC/1)", v)
-		}
-
-		// You can use the "ip" name optionally, but we don't want to use the user input.
-		if replaceiprx.MatchString(v) {
-			commands[idx] = replaceiprx.ReplaceAllString(v, "")
-		}
-	}
-
-	return commands, nil
-
 }
 
 func GetInterfaceMaps(args *skel.CmdArgs, conf *types.NetConf) (string, error) {

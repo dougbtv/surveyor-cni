@@ -5,12 +5,20 @@ mkdir -p /tmp/cniconfig
 
 cat << EOF > /tmp/cniconfig/99-test-surveyor.conflist
 {
-  "cniVersion": "0.4.0",
-  "name": "test-surveyor-chain",
-  "plugins": [{
-    "type": "surveyor",
-    "foo": "bar"
-  }]
+	"cniVersion": "0.4.0",
+	"name": "test-surveyor-chain",
+	"plugins": [{
+		"type": "surveyor",
+		"foo": "bar",
+		"master": "eth0",
+		"mode": "bridge",
+		"ipam": {
+			"type": "static",
+			"addresses": [{
+				"address": "10.10.0.1/24"
+			}]
+		}
+	}]
 }
 EOF
 
