@@ -9,7 +9,15 @@ spec:
     "name": "test-surveyor-chain",
     "plugins": [{
       "type": "surveyor",
-      "foo": "bar"
+      "foo": "bar",
+      "master": "eth0",
+      "mode": "bridge",
+      "ipam": {
+        "type": "static",
+        "addresses": [{
+          "address": "10.10.0.1/24"
+        }]
+      }
     }]
   }'
 ---
@@ -19,8 +27,6 @@ metadata:
   name: surveyortestpod
   annotations:
     k8s.v1.cni.cncf.io/networks: test-surveyor
-    k8s.v1.cni.cncf.io/surveyor: >
-      ["ip route","  ip addr"]
 spec:
   containers:
   - name: surveyortestpod
