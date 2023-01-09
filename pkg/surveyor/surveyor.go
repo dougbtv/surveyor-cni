@@ -2,7 +2,6 @@ package surveyor
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -17,6 +16,8 @@ import (
 	"time"
 
 	crdtypes "github.com/dougbtv/surveyor-cni/pkg/apis/k8s.cni.cncf.io/v1"
+	"github.com/dougbtv/surveyor-cni/pkg/client/clientset/versioned"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/dougbtv/surveyor-cni/pkg/types"
 
@@ -66,7 +67,19 @@ func WriteToSocket(output string, conf *types.NetConf) error {
 }
 
 func CreateInterfaceMap(namespace string) error {
-	ifmap := &crdtypes.InterfaceMap{}
+	ifmapname, err := os.Hostname()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Printf("!bang ifmapname: %+v\n", ifmapname)
+
+	ifmap := &crdtypes.InterfaceMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ifmapname,
+			Namespace: namespace,
+		},
+	}
 
 	/*
 
@@ -110,26 +123,37 @@ func CreateInterfaceMap(namespace string) error {
 		ifmap.Spec = append(ifmap.Spec, *newdev)
 	}
 
-	ifmapname, err := os.Hostname()
+	/*
+		body, err := json.Marshal(ifmap)
+
+		kubeClient, err := GetK8sClient("", nil)
+		data, err := kubeClient.RestClient.Post().
+			AbsPath("/apis/k8s.cni.cncf.io/v1/namespaces/" + namespace + "/interfacemaps/" + ifmapname).
+			Body(body).
+			DoRaw(context.TODO())
+		if err != nil {
+			fmt.Printf("error posting cr: %+v\n", err)
+			return err
+		}
+	*/
+
+	config, err := clientcmd.BuildConfigFromFlags("", "")
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
-	fmt.Printf("!bang ifmapname: %+v\n", ifmapname)
 
-	body, err := json.Marshal(ifmap)
-
-	kubeClient, err := GetK8sClient("", nil)
-	data, err := kubeClient.RestClient.Post().
-		AbsPath("/apis/k8s.cni.cncf.io/v1/namespaces/" + namespace + "/interfacemaps/" + ifmapname).
-		Body(body).
-		DoRaw(context.TODO())
+	// Create the client.
+	client, err := versioned.NewForConfig(config)
 	if err != nil {
-		fmt.Printf("error posting cr: %+v\n", err)
-		return err
+		log.Fatal(err)
 	}
 
-	fmt.Printf("!bang data: %+v\n", data)
+	result, err := client.K8sV1().InterfaceMaps("default").Create(context.TODO(), ifmap, metav1.CreateOptions{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("!bang data: %+v\n", result)
 	fmt.Printf("!bang ifmap: %+v\n", ifmap)
 
 	return nil
@@ -222,7 +246,7 @@ func GetK8sClient(kubeconfig string, kubeClient *ClientInfo) (*ClientInfo, error
 	// Set the config timeout to one minute.
 	config.Timeout = time.Minute
 
-	// creates the clientset
+	// creates the crdtypes
 	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
