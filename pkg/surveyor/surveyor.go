@@ -148,7 +148,7 @@ func CreateInterfaceMap(namespace string) error {
 		log.Fatal(err)
 	}
 
-	result, err := client.K8sV1().InterfaceMaps("default").Create(context.TODO(), ifmap, metav1.CreateOptions{})
+	result, err := client.K8sV1().InterfaceMaps(namespace).Create(context.TODO(), ifmap, metav1.CreateOptions{})
 	if err != nil {
 		log.Fatal(err)
 	}
