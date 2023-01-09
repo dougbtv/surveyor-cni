@@ -1,2 +1,2 @@
 FROM fedora:latest
-RUN yum install -y nc net-tools sed
+RUN yum install -y nc iproute net-tools sed

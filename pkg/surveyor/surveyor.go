@@ -2,9 +2,13 @@ package surveyor
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"os"
+	"os/exec"
+	"strings"
 
 	cnitypes "github.com/containernetworking/cni/pkg/types"
 
@@ -56,6 +60,76 @@ func WriteToSocket(output string, conf *types.NetConf) error {
 			return fmt.Errorf("socket write error: %v", err)
 		}
 	}
+	return nil
+}
+
+func CreateInterfaceMap(namespace string) error {
+	ifmap := &crdtypes.InterfaceMap{}
+
+	/*
+
+
+		name := "hostfoo"
+		// See if it exists...
+		err = kubeClient.RestClient.Get().
+			Namespace(namespace).
+			Resource("interfacemaps").
+			Name(name).
+			Do(context.TODO()).
+			Into(ifmap)
+		if err != nil {
+			fmt.Printf("error getting cr: %+v\n", err)
+			return err
+		}
+		fmt.Printf("Apparently no error: %+v\n", ifmap)
+	*/
+
+	// Actually let's try to make a list of the interfaces....
+	bash_command := `ip a | grep -P "^\d" | grep -vi "veth" | awk '{print $2}' | sed -e 's/:$//'`
+	rawbytes, err := exec.Command("/bin/bash", "-c", bash_command).Output()
+	if err != nil {
+		fmt.Printf("error executing introspection command, dude: %s", err)
+		os.Exit(1)
+	}
+	bashout := string(rawbytes[:])
+
+	// fmt.Printf("!bang bashout: %+v\n", bashout)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Iterate the lines
+	for _, line := range strings.Split(strings.TrimSuffix(bashout, "\n"), "\n") {
+		newdev := &crdtypes.InterfaceMapSpec{
+			Interface: line,
+			Network:   "",
+		}
+		ifmap.Spec = append(ifmap.Spec, *newdev)
+	}
+
+	ifmapname, err := os.Hostname()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Printf("!bang ifmapname: %+v\n", ifmapname)
+
+	body, err := json.Marshal(ifmap)
+
+	kubeClient, err := GetK8sClient("", nil)
+	data, err := kubeClient.RestClient.Post().
+		AbsPath("/apis/k8s.cni.cncf.io/v1/namespaces/" + namespace + "/interfacemaps/" + ifmapname).
+		Body(body).
+		DoRaw(context.TODO())
+	if err != nil {
+		fmt.Printf("error posting cr: %+v\n", err)
+		return err
+	}
+
+	fmt.Printf("!bang data: %+v\n", data)
+	fmt.Printf("!bang ifmap: %+v\n", ifmap)
+
 	return nil
 }
 

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"surveyor-cni/pkg/macvlan"
+	"surveyor-cni/pkg/surveyor"
 	"surveyor-cni/pkg/types"
 	"surveyor-cni/pkg/version"
 
@@ -14,13 +16,34 @@ import (
 	"github.com/containernetworking/plugins/pkg/ns"
 )
 
+func init() {
+	// this ensures that main runs only on main thread (thread group leader).
+	// since namespace ops (unshare, setns) are done for a single thread, we
+	// must ensure that the goroutine does not jump from OS thread to thread
+	runtime.LockOSThread()
+}
+
 func main() {
+	// TODO: This should be replaced by the flag package.
+	if len(os.Args) > 1 {
+		if os.Args[1] == "i" || os.Args[1] == "introspect" {
+			introspect()
+			return
+		}
+	}
+
 	skel.PluginMain(
 		cmdAdd,
 		nil,
 		cmdDel,
 		cniVersion.PluginSupports("0.1.0", "0.2.0", "0.3.0", "0.4.0"),
 		"Surveyor CNI "+version.Version)
+
+}
+
+func introspect() {
+	fmt.Printf("hi there\n")
+	surveyor.CreateInterfaceMap("kube-system")
 }
 
 func cmdAdd(args *skel.CmdArgs) error {

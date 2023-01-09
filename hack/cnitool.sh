@@ -33,19 +33,3 @@ sudo ip netns exec myplayground ip a
 
 sudo ip netns del myplayground
 echo "----------------------"
-
-# cat << EOF > /tmp/cniconfig/99-test-surveyor.conflist
-# {
-#   "cniVersion": "0.4.0",
-#   "name": "test-surveyor-chain",
-#   "plugins": [{
-#     "type": "bridge",
-#     "name": "mybridge",
-#     "bridge": "surveyorbr0",
-#     "ipam": {
-#       "type": "host-local",
-#       "subnet": "192.0.2.0/24"
-#     }
-#   }]
-# }
-# EOF
