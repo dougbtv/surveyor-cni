@@ -22,7 +22,7 @@ import (
 	"net"
 	"os"
 
-	surveyortypes "surveyor-cni/pkg/types"
+	surveyortypes "github.com/dougbtv/surveyor-cni/pkg/types"
 
 	"github.com/vishvananda/netlink"
 

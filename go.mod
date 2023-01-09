@@ -1,4 +1,4 @@
-module surveyor-cni
+module github.com/dougbtv/surveyor-cni
 
 go 1.17
 

@@ -14,9 +14,11 @@ import (
 
 	// current "github.com/containernetworking/cni/pkg/types/040"
 	// cniVersion "github.com/containernetworking/cni/pkg/version"
-	crdtypes "surveyor-cni/pkg/apis/k8s.cni.cncf.io/v1"
-	"surveyor-cni/pkg/types"
 	"time"
+
+	crdtypes "github.com/dougbtv/surveyor-cni/pkg/apis/k8s.cni.cncf.io/v1"
+
+	"github.com/dougbtv/surveyor-cni/pkg/types"
 
 	"github.com/containernetworking/cni/pkg/skel"
 

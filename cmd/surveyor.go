@@ -5,10 +5,11 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"surveyor-cni/pkg/macvlan"
-	"surveyor-cni/pkg/surveyor"
-	"surveyor-cni/pkg/types"
-	"surveyor-cni/pkg/version"
+
+	"github.com/dougbtv/surveyor-cni/pkg/macvlan"
+	"github.com/dougbtv/surveyor-cni/pkg/surveyor"
+	"github.com/dougbtv/surveyor-cni/pkg/types"
+	"github.com/dougbtv/surveyor-cni/pkg/version"
 
 	"github.com/containernetworking/cni/pkg/skel"
 	cniTypes "github.com/containernetworking/cni/pkg/types"
