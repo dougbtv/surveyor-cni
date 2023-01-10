@@ -44,6 +44,7 @@ func main() {
 
 func introspect() {
 	fmt.Printf("hi there\n")
+	// TODO: This is static and it should be controlled with a flag, I think, since it can't read a CNI config, right?
 	surveyor.CreateInterfaceMap("kube-system")
 }
 
@@ -64,7 +65,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 
 	// surveyor.WriteToSocket(fmt.Sprintf("Config loaded: %+v", conf), conf)
 	// !bang PUT THIS BACK.
-	// surveyor.GetInterfaceMaps(args, conf)
+	surveyor.GetInterfaceMaps(args, conf)
 
 	/*
 		// Let's do the delegation

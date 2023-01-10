@@ -21,6 +21,7 @@ type NetConf struct {
 	SocketEnabled bool   `json:"socket_enabled"`
 	SocketPath    string `json:"socket_path"`
 	Kubeconfig    string `json:"kubeconfig"`
+	CRDNamespace  string `json:"namespace"`
 
 	// Macvlan params
 	Master        string `json:"master"`
@@ -55,6 +56,7 @@ func LoadNetConf(bytes []byte) (*NetConf, error) {
 		SocketEnabled: true,
 		SocketPath:    "/var/run/surveyor-cni/surveyor.sock",
 		Kubeconfig:    use_kubeconfig_path,
+		CRDNamespace:  "kube-system",
 	}
 	if err := json.Unmarshal(bytes, &conf); err != nil {
 		return nil, fmt.Errorf("failed to load netconf: %s", err)
