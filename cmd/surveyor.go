@@ -56,35 +56,30 @@ func cmdAdd(args *skel.CmdArgs) error {
 		return err
 	}
 
-	// Create a CNI result to use.
-	// result := &current.Result{}
-	result, err := macvlan.CmdAdd(args, conf)
-	if err != nil {
-		debugLogger(fmt.Sprintf("!bang add error: %s", err))
+	if conf.Network == "" {
+		return fmt.Errorf("surveyor: 'network' field cannot be empty.")
+	}
+
+	if conf.Master != "" {
+		return fmt.Errorf("surveyor: 'master' field should not be filled in (saw: %s).", conf.Master)
 	}
 
 	// surveyor.WriteToSocket(fmt.Sprintf("Config loaded: %+v", conf), conf)
 	// !bang PUT THIS BACK.
-	surveyor.GetInterfaceMaps(args, conf)
+	mapping, err := surveyor.GetInterfaceMapping(args, conf)
+	if err != nil {
+		return err
+	}
+	// Set the mapping
+	conf.Master = mapping
+	surveyor.WriteToSocket(fmt.Sprintf("!bang config with mapping: %+v\n", conf), conf)
 
-	/*
-		// Let's do the delegation
-		binDirs := filepath.SplitList(os.Getenv("CNI_PATH"))
-		cniNet := libcni.NewCNIConfig(binDirs, nil)
-		// fmt.Printf("bindirs: %+v", binDirs)
-		result, err := cniNet.AddNetwork(context.Background(), conf, rt)
-
-		debugLogger(fmt.Sprintf("!bang bindirs: %+v", binDirs))
-		debugLogger(fmt.Sprintf("!bang cniNet: %+v", cniNet))
-	*/
-	/*
-
-
-		fmt.Printf("!bang cniNet: %+v\n", cniNet)
-		fmt.Printf("!bang conf: %+v\n", conf)
-	*/
-
-	debugLogger("foo")
+	// Make the call to macvlan to add this...
+	result, err := macvlan.CmdAdd(args, conf)
+	if err != nil {
+		surveyor.WriteToSocket(fmt.Sprintf("surveyor - macvlan error: %+v\n", err), conf)
+		return err
+	}
 
 	return cniTypes.PrintResult(result, conf.CNIVersion)
 }
@@ -100,28 +95,6 @@ func debugLogger(s string) {
 		log.Println(err)
 	}
 }
-
-/*
-func confAdd(rt *libcni.RuntimeConf, rawNetconf []byte, multusNetconf *types.NetConf, exec invoke.Exec) (cnitypes.Result, error) {
-	logging.Debugf("confAdd: %v, %s", rt, string(rawNetconf))
-	// In part, adapted from K8s pkg/kubelet/dockershim/network/cni/cni.go
-	binDirs := filepath.SplitList(os.Getenv("CNI_PATH"))
-	binDirs = append([]string{multusNetconf.BinDir}, binDirs...)
-	cniNet := libcni.NewCNIConfigWithCacheDir(binDirs, multusNetconf.CNIDir, exec)
-
-	conf, err := libcni.ConfFromBytes(rawNetconf)
-	if err != nil {
-		return nil, logging.Errorf("error in converting the raw bytes to conf: %v", err)
-	}
-
-	result, err := cniNet.AddNetwork(context.Background(), conf, rt)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
-}
-*/
 
 func cmdDel(args *skel.CmdArgs) (err error) {
 	netNS, err := ns.GetNS(args.Netns)

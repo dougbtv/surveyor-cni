@@ -104,13 +104,12 @@ func CreateInterfaceMap(namespace string) error {
 		log.Fatal(err)
 	}
 
-	result, err := client.K8sV1().InterfaceMaps(namespace).Create(context.TODO(), ifmap, metav1.CreateOptions{})
+	_, err = client.K8sV1().InterfaceMaps(namespace).Create(context.TODO(), ifmap, metav1.CreateOptions{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("!bang data: %+v\n", result)
-	fmt.Printf("!bang ifmap: %+v\n", ifmap)
+	fmt.Printf("Initialized interface map for %s: %+v\n", ifmapname, ifmap)
 
 	return nil
 }
@@ -145,7 +144,7 @@ func GetK8sClient(kubeconfig string) (*versioned.Clientset, error) {
 	return client, nil
 }
 
-func GetInterfaceMaps(args *skel.CmdArgs, conf *types.NetConf) (string, error) {
+func GetInterfaceMapping(args *skel.CmdArgs, conf *types.NetConf) (string, error) {
 
 	WriteToSocket(fmt.Sprintf("!bang kubeconfig: %+v\n", conf.Kubeconfig), conf)
 	client, err := GetK8sClient(conf.Kubeconfig)
@@ -174,7 +173,22 @@ func GetInterfaceMaps(args *skel.CmdArgs, conf *types.NetConf) (string, error) {
 	// Print the custom resource.
 
 	WriteToSocket(fmt.Sprintf("!bang Custom Resource: %+v\n", ifmap), conf)
-	return "hello", nil
+
+	// Now we'll cycle the properties and see if
+	returnmapping := ""
+	for _, element := range ifmap.Spec {
+		// element is the element from someSlice for where we are
+		if element.Network == conf.Network {
+			returnmapping = element.Interface
+			break
+		}
+	}
+
+	if returnmapping == "" {
+		return "", fmt.Errorf(fmt.Sprintf("Interface name is empty, unassigned or uninitialized for network: %s", conf.Network))
+	}
+
+	return returnmapping, nil
 }
 
 // GetK8sArgs gets k8s related args from CNI args

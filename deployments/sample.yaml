@@ -10,7 +10,7 @@ spec:
     "plugins": [{
       "type": "surveyor",
       "foo": "bar",
-      "master": "eth0",
+      "network": "red",
       "mode": "bridge",
       "ipam": {
         "type": "static",
