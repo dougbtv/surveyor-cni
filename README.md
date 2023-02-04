@@ -16,21 +16,32 @@ Currently pre-alpha!
 
 ## So, what's it do?
 
-The tool currently create macvlan networks akin to the macvlan plugin (to be expanded later).
-
-...TODO
+The tool currently create macvlan networks akin to the macvlan plugin (to be expanded later)
 
 ## Quickstart
 
-...
+### Requirements
 
-## What could be done better
+* A running Kubernetes cluster (I'd recommend [kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/) if you want to try one!)
+* You have Multus CNI installed, you can [use the quickstart guide](https://github.com/k8snetworkplumbingwg/multus-cni/blob/master/docs/quickstart.md) to install it.
+* You have [the CNI reference plugins](https://github.com/containernetworking/plugins/) installed (semi-optional, but you'll have to update the examples to remove static IPAM CNI)
+* Optional: You've tried macvlan + Multus before, which can give you some more context (The Multus quickstart guide above will help you there)
 
-...
+### Installation
 
-## Limitations
+### Give it a whirl!
 
+## Trivia
+
+I originally wanted to name the plugin after my favorite [Adirondack](https://en.wikipedia.org/wiki/Adirondack_Mountains) explorer, [Verplanck Colvin](https://en.wikipedia.org/wiki/Verplanck_Colvin), who was a topological engineer who through great adventures helped to survey and map to the Adirondack Mountains which for a long time remained largely unexplored. However, I couldn't figure out a way to make it roll off the tongue, so I stuck with "Surveyor CNI" as it gives a way to kind of survey the equipment you have, and then semantically map it. He also came up with a cool little invention which was basically a pinwheel he'd install on a mountain top so he could get a shine off it on a sunny day to help him sight where the mountain top was exactly.
+
+The logo is created with the help of MidJourney. I realize that these imagery AI's are somewhat controversial, but I was trying to whip something up while travelling and had a low power laptop and no mouse, so I figured I'd give it a try, and tried to prompt MidJourney with what I thought Verplanck might look like while atop the mountain.
+
+## Limitations / What could be done better
+
+* It's a PoC right now! So beware.
 * This uses a local fork of the macvlan CNI, it could use [a delegated call](https://pkg.go.dev/github.com/containernetworking/cni/libcni#CNIConfig.AddNetwork) instead.
 * That also means, it's basically just macvlan CNI + mapping. It'd be cooler to be more generic.
 * I'm unsure how well runtimeconfigs work.
 * There's no testing (patches please!)
+* There's no automated builds.
