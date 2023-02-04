@@ -1,6 +1,6 @@
 # surveyor-cni
 
-![Surveyor CNI Logo](https://github.com/dougbtv/surveyor-cni/blob/main/docs/surveyor_logo.png | width=420)
+<img src="https://github.com/dougbtv/surveyor-cni/blob/main/docs/surveyor_logo.png" width="420" height="420">
 
 A CNI plugin for mapping interfaces to networks (instead of interface names!)
 
