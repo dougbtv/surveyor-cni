@@ -1,6 +1,6 @@
 # surveyor-cni
 
-![multus-cni Logo](https://github.com/dougbtv/surveyor-cni/blob/docs/surveyor_logo.png)
+![Surveyor CNI Logo](https://github.com/dougbtv/surveyor-cni/blob/main/docs/surveyor_logo.png)
 
 A CNI plugin for mapping interfaces to networks (instead of interface names!)
 
